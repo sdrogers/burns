@@ -19,6 +19,9 @@ def load_di(file_name,out_file = None,min_length = 10,min_intense = 0.0):
         intensity = trace.getMaxIntensity(False)
         spectrum.append((mz,intensity))
 
+
+    spectrum = sorted(spectrum,key = lambda x: x[1])
+    
     if out_file:
         with open(out_file,'w') as f:
             writer = csv.writer(f)

@@ -212,3 +212,63 @@ class MassOnlyMatching(SimpleMatching):
         mz = f1.mz - f2.mz
         dist = math.sqrt((mz*mz)/(mz_tol*mz_tol))
         return dist
+
+class PeakSet(object):
+    def __init__(self):
+        self.n_peaks = 0
+        self.peaks = []
+        self.mean_mz = 0.0
+        self.mz_sum = 0.0
+        self.name = ""
+    def add_peak(self,mz,intensity,filename):
+        self.n_peaks += 1
+        self.mz_sum += mz
+        self.mean_mz = self.mz_sum/(1.0*self.n_peaks)
+        self.peaks.append((mz,intensity,filename))
+        self.name = str(self.mean_mz)
+    def compute_error(self,mz):
+        return 1e6*abs(mz - self.mean_mz)/self.mean_mz
+    def has_file(self,filename):
+        f = filter(lambda x: x[2] == filename,self.peaks)
+        if len(f) > 0:
+            return True
+        else:
+            return False
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        s = " ".join(["({},{})".format(p[0],p[2]) for p in self.peaks])
+        return s
+
+class Greedy(object):
+    def process(self,dict_of_spec,mz_tol):
+        file_list = dict_of_spec.keys()
+
+
+        tuple_list = []
+        for filename,spec in dict_of_spec.items():
+            for mz,inte in spec:
+                tuple_list.append((filename,mz,inte))
+        print "{} peaks".format(len(tuple_list))
+        tuple_list = sorted(tuple_list,key = lambda x: x[1])
+        
+        matched_peaks = []
+        finished = False
+
+        pos = 1
+        current_peakset = PeakSet()
+        current_peakset.add_peak(tuple_list[0][1],tuple_list[0][2],tuple_list[0][0])
+
+
+        while pos < len(tuple_list):
+            next_peak = tuple_list[pos]
+            er = current_peakset.compute_error(next_peak[1])
+            if er <= mz_tol and (not current_peakset.has_file(next_peak[0])):
+                current_peakset.add_peak(next_peak[1],next_peak[2],next_peak[0])
+            else:
+                matched_peaks.append(current_peakset)
+                current_peakset = PeakSet()
+                current_peakset.add_peak(next_peak[1],next_peak[2],next_peak[0])
+            pos += 1
+        return matched_peaks
