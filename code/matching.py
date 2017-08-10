@@ -264,7 +264,8 @@ class Greedy(object):
         while pos < len(tuple_list):
             next_peak = tuple_list[pos]
             er = current_peakset.compute_error(next_peak[1])
-            if er <= mz_tol and (not current_peakset.has_file(next_peak[0])):
+            # if er <= mz_tol and (not current_peakset.has_file(next_peak[0])):
+            if er <= mz_tol:
                 current_peakset.add_peak(next_peak[1],next_peak[2],next_peak[0])
             else:
                 matched_peaks.append(current_peakset)
