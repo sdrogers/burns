@@ -2,6 +2,17 @@ import sys
 import csv
 from pyopenms import *
 
+def raw_load(file_name):
+    import pymzml
+    spectrum = []
+
+    msrun = pymzml.run.Reader(file_name)
+    for spec in msrun:
+        for mz,intensity in spec.peaks:
+            if intensity > 0:
+                spectrum.append((mz,intensity))
+    return spectrum
+
 
 def load_di(file_name,out_file = None,blank_file = None,min_length = 10,min_intense = 0.0,mz_tol = 5,normalise = 100.0):
     file = MzMLFile()
